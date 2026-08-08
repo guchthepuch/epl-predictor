@@ -1,11 +1,12 @@
 {
   "model": "elo",
-  "matches": 1520,
-  "accuracy_1x2": 0.5407894736842105,
-  "log_loss": 0.9775822377057797,
-  "brier_score": 0.5813447153488719,
+  "matches": 1711,
+  "accuracy_1x2": 0.5441262419637639,
+  "log_loss": 0.9790910507780086,
+  "brier_score": 0.5826968030832584,
   "start_rating": 1500.0,
   "k": 40.0,
   "home_adv": 65.0,
-  "draw_prob": 0.23
+  "draw_prob": 0.23,
+  "note": "Restricted to i>=100 to match Poisson/Combined's fixture set \u2014 see scripts/build_dashboard_data.py"
 }

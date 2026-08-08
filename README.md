@@ -30,18 +30,20 @@ Predicting football is hard. A 55% accurate model is genuinely competitive with 
 
 All metrics are from a **walk-forward backtest** — the model is trained on matches before each prediction and tested on the next match it has never seen. This mirrors real-world use and avoids any data leakage.
 
+All three models are scored on the identical fixture set (the same 1,711 matches, i≥100 in the current dataset — the first 100 are training warm-up, not scored for any model). Earlier versions of this table scored Elo on every match and Poisson/Combined on a smaller subset, which made the comparison between rows invalid; see [`scripts/build_dashboard_data.py`](scripts/build_dashboard_data.py) and the [Model Comparison dashboard](https://epl-predictor-xmqs.onrender.com/dashboard) for the full breakdown, including a season-by-season split.
+
 | Model | Matches | Accuracy | Brier Score | Log Loss |
 |---|---|---|---|---|
-| Elo only | 1,520 | 54.1% | 0.581 | 0.978 |
-| Poisson only | 1,420 | 52.7% | 0.596 | 1.008 |
-| **Combined (production)** | **1,420** | **54.9%** | **0.574** | **0.967** |
+| Elo only | 1,711 | 54.4% | 0.583 | 0.979 |
+| Poisson only | 1,711 | 52.1% | 0.600 | 1.013 |
+| **Combined (production)** | **1,711** | **53.9%** | **0.581** | **0.976** |
 
 **Baselines for context:**
 - Random guess (uniform 33/33/33): ~33% accuracy, Brier ~0.667
-- Always predicting home win: ~45% accuracy
+- Always predicting home win: 44.7% accuracy (measured on this eval set)
 - Betting market closing odds: ~54–56% accuracy
 
-The combined model sits at betting-market level, which is the realistic ceiling for a model trained on scoreline history alone without squad, injury, or xG data.
+On this identical fixture set, **Elo alone is slightly more accurate than the combined model** (54.4% vs. 53.9%) — the combined model's edge over Elo is in calibration, not raw accuracy (Brier 0.581 vs. 0.583, a small improvement). Combined clearly beats Poisson alone on both metrics. Elo alone is the one that lands closest to betting-market level; the ensemble's value is a better-calibrated probability, not a higher hit rate.
 
 ---
 
@@ -203,6 +205,8 @@ The server auto-refreshes training data on startup if the dataset is more than 7
 The idea was simple. I wanted to be able to predict Premier League results using actual data rather than just guessing and making it random. I started with Elo ratings because they're clean and interpretable: every team starts at 1500, and ratings shift after each match based on what was expected vs what happened. That alone gave decent accuracy. The Poisson model came next to add scoreline-level detail. Instead of just win/draw/loss, you get expected goals and a full probability distribution over every scoreline. I combined them 70/30 in favour of Elo because Elo is more stable over a season and Poisson adds the texture on top.
 
 The backtest was done walk-forward. The model never sees future matches when making a prediction, which is how it would actually work in real life. 54.9% accuracy across 1,420 matches, which sits right at betting market level. That's roughly the ceiling you can reach with historical scoreline data alone.
+
+*Correction, added later: that 1,420-match figure compared Elo and Combined on different fixture sets (Elo was scored on every match, Combined skipped the first 100 as training warm-up), so it wasn't a like-for-like comparison. See the Model Performance table above for the corrected, identical-fixture-set numbers — Elo alone actually edges out Combined on accuracy; the ensemble's real advantage is calibration.*
 
 Once the model was working, I built a FastAPI backend to serve predictions and a basic frontend to interact with it. Got it deployed on Render and left it there for a while.
 
